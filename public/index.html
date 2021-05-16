@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Game</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="../css/app.css" />
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="../js/client.js" defer></script>
+  </head>
+  <body class="container border">
+    <header class="border-bottom border-primary mt-4 text-center p-3">
+      <h1 class="display-3 font-weight-bold">
+        Quiz <span class="text-danger">Game</span>
+        <span class="d-block font-weight-light">
+          (Made with
+          <a class="text-decoration-none" target="#" href="https://socket.io/"
+            >Socket.io</a
+          >)</span
+        >
+        <span
+          class="
+            d-block
+            h3
+            p__connecting
+            bg-success
+            text-white
+            w-25
+            rounded
+            p-2
+            mx-auto
+            mt-4
+            text-center
+          "
+        ></span>
+      </h1>
+    </header>
+    <main>
+      <section id="question" class="display-4 mt-3"></section>
+      <section id="choices" class="mt-4">
+        <button class="btn btn-lg btn-outline-dark w-25 mx-2">Button</button>
+        <button class="btn btn-lg btn-outline-dark w-25 mx-2">Button</button>
+        <button class="btn btn-lg btn-outline-dark w-25 mx-2">Button</button>
+        <button class="btn btn-lg btn-outline-dark w-25 mx-2 mt-3">
+          Button
+        </button>
+      </section>
+    </main>
+  </body>
+</html>
