@@ -15,6 +15,8 @@ const { getQuestions, shuffle } = require("./utils/methods");
 
 let data;
 let isJoined = false;
+let counter = 0;
+let score = 0;
 
 getQuestions().then(questions => (data = questions));
 
@@ -26,10 +28,10 @@ io.on("connection", socket => {
   // Determining the room name
   let currentRoom;
 
-  if (!isJoined) {
+  if (isJoined === false) {
     currentRoom = "Player";
     socket.join(currentRoom);
-    isJoined = false;
+    isJoined = true;
   } else {
     currentRoom = "Spectators";
     socket.join(currentRoom);
@@ -45,18 +47,44 @@ io.on("connection", socket => {
       if (incorrectAnswers.length < 4) {
         incorrectAnswers.push(correctAnswer);
       }
-      value.allAnswers = shuffle(incorrectAnswers);
+      value.all_answers = shuffle(incorrectAnswers);
     });
 
     if (currentRoom === "Player") {
-      io.in(currentRoom).emit("questions", data);
+      io.in(currentRoom).emit("questions", data[counter]);
     } else {
       io.in(currentRoom).emit("spectator", "You are in the Spectators room");
     }
   }
 
+  socket.on("answer", answer => {
+    // console.log("answer: ", answer);
+    const currentQuestion = data[counter];
+    for (const property in currentQuestion) {
+      if (property === "correct_answer") {
+        if (currentQuestion[property] === answer) {
+          score++;
+          console.log("Your score:", score);
+        } else {
+          console.log("Wrong");
+        }
+      }
+    }
+
+    counter++;
+    if (counter < 5) {
+      io.in(currentRoom).emit("questions", data[counter]);
+    } else {
+      io.in(currentRoom).emit("questions", "No questions left");
+      counter = 0;
+    }
+  });
+
   // Player status: disconnected
   socket.on("disconnect", () => {
+    if (currentRoom === "Player") {
+      isJoined = false;
+    }
     console.log(`${socket.id} disconnected`);
   });
 });
