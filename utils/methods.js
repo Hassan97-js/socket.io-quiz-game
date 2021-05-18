@@ -2,13 +2,13 @@
 const axios = require("axios").default;
 
 // get the questions
-const getQuestions = async () => {
+const getQuestion = async () => {
   try {
     const response = await axios.get(
-      "https://opentdb.com/api.php?amount=5&category=9&difficulty=medium&type=multiple"
+      "https://opentdb.com/api.php?amount=1&category=9&difficulty=medium&type=multiple"
     );
-    const questions = response.data.results;
-    return questions;
+    const question = response.data.results[0];
+    return question;
   } catch (error) {
     console.error(error);
   }
@@ -16,7 +16,7 @@ const getQuestions = async () => {
 
 // shuffle the items in the array
 const shuffle = array => {
-  let shuffledArray = [...array];
+  const shuffledArray = [...array];
   let currentIndex = shuffledArray.length;
   let tempVal;
   let randIndex;
@@ -32,4 +32,4 @@ const shuffle = array => {
   return shuffledArray;
 };
 
-module.exports = { getQuestions, shuffle };
+module.exports = { getQuestion, shuffle };
