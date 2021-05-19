@@ -31,6 +31,7 @@ let isJoined = false;
 let score = 0;
 let currentRoom;
 let currentQuestion;
+let q_number = 1;
 
 // function to send the question
 function sendNextQuestion() {
@@ -82,19 +83,28 @@ io.on("connection", socket => {
     socket.join(currentRoom);
   }
 
-  socket.emit("currentRoom", currentRoom);
+  if (currentRoom === "Player") {
+    q_number = 1;
+  }
+
+  socket.emit("currentRoom", currentRoom, q_number);
 
   socket.on("answer", answer => {
     // send a new question when the player send the answer
     sendNextQuestion();
+    q_number++;
 
     if (currentQuestion.correct_answer === answer) {
       score++;
       console.log("Your score:", score);
-      io.emit("answerStatus", { q_status: true, score });
+      io.emit("answerStatus", { q_status: true, score }, q_number);
+      console.log(`You answered with ${answer}`);
+      console.log(`Correct answer is ${currentQuestion.correct_answer}`);
     } else {
       console.log("Wrong");
-      io.emit("answerStatus", { q_status: false, score });
+      io.emit("answerStatus", { q_status: false, score }, q_number);
+      console.log(`You answered with ${answer}`);
+      console.log(`Correct answer is ${currentQuestion.correct_answer}`);
     }
   });
 
@@ -103,6 +113,9 @@ io.on("connection", socket => {
   // Player status: disconnected
   socket.on("disconnect", () => {
     if (currentRoom === "Player") {
+      isJoined = true;
+      q_number = 1;
+    } else {
       isJoined = false;
     }
     score = 0;

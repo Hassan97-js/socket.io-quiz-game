@@ -1,21 +1,25 @@
 const socket = io();
 
-// player namespace (multiplexing)
 const questionSection = document.querySelector("section#question");
 const playerStatus = document.querySelector("span.p__connecting");
-const playerChoices = document.querySelector("section#choices");
+
 const resultSection = document.querySelector("section#result");
 const playerResult = document.querySelector("div.result-content");
 const playerScore = document.querySelector("div.score");
 
+const playerChoices = document.querySelector("section#choices");
+
 let currentRoom;
 let spec_info;
+let current_i;
+let global_qNumber = 1;
 
 socket.on("playerConnected", name => {
   playerStatus.textContent = `${name} connected!`;
 });
 
-socket.on("currentRoom", room => {
+socket.on("currentRoom", (room, number) => {
+  global_qNumber = number;
   currentRoom = room;
   console.log("You are in room: " + room);
 });
@@ -25,42 +29,40 @@ socket.on("questions", question => {
   console.log(question);
 
   removeAllChilds(playerChoices);
-  removeAllChilds(playerResult);
 
-  if (question !== "No questions left") {
-    questionSection.innerHTML = question.question;
-    if (currentRoom !== "Spectators") {
-      for (const answer of question.all_answers) {
-        const button = document.createElement("input");
-        button.setAttribute("type", "button");
-        button.className =
-          "btn btn-lg btn-outline-dark w-50 d-block mx-auto my-2";
-        const decodedAnswer = decodeHTML(answer);
-        button.value = decodedAnswer;
-        playerChoices.appendChild(button);
+  questionSection.innerHTML = `${global_qNumber}. ${decodeURIComponent(
+    question.question
+  )}`;
 
-        button.addEventListener("click", () => {
-          socket.emit("answer", button.value);
-          removeAllChilds(playerChoices);
-        });
-      }
-    } else {
-      spec_info
-        ? (playerResult.innerHTML = `Player has answered ${
-            spec_info.q_status ? "Correct" : "Wrong"
-          }.`)
-        : (playerChoices.innerHTML = "Waiting for player to answer...");
+  if (currentRoom !== "Spectators") {
+    // send the answer to the client
+    for (const answer of question.all_answers) {
+      const button = document.createElement("button");
+      button.className = "btn btn-lg btn-outline-dark d-block mx-auto my-2";
+      button.textContent = decodeURIComponent(answer);
+      playerChoices.appendChild(button);
+      button.addEventListener("click", () => {
+        socket.emit("answer", button.textContent);
+        console.log(button.textContent);
+        removeAllChilds(playerChoices);
+      });
+    }
 
-      spec_info
-        ? (playerScore.innerHTML = `Player has score ${spec_info.score}.`)
-        : (playerChoices.innerHTML = "Waiting for player to answer...");
+    playerResult.innerHTML = "";
+  } else {
+    playerChoices.innerHTML = "";
+    if (spec_info) {
+      playerResult.innerHTML = `Player has answered ${
+        spec_info.q_status ? "Correct" : "Wrong"
+      }.`;
+      playerScore.innerHTML = `Player has score ${spec_info.score}.`;
     }
   }
 });
 
-socket.on("answerStatus", payload => {
+socket.on("answerStatus", (payload, number) => {
+  global_qNumber = number;
   spec_info = payload;
-  console.log(payload);
   playerScore.textContent = `Your score is: ${payload.score}`;
 });
 
@@ -73,9 +75,8 @@ function removeAllChilds(parent) {
   }
 }
 
-// decode HTML entities
-function decodeHTML(html) {
-  var txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
+// send the answer to the server
+function sendAnswer() {
+  socket.emit("answer", choices[current_i].textContent);
+  console.log(choices[current_i].textContent, current_i);
 }
