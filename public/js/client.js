@@ -1,6 +1,8 @@
 const socket = io();
 
+const mainSection = document.querySelector("main");
 const questionSection = document.querySelector("section#question");
+
 const playerStatus = document.querySelector("span.p__connecting");
 
 const resultSection = document.querySelector("section#result");
@@ -30,16 +32,14 @@ socket.on("questions", question => {
 
   removeAllChilds(playerChoices);
 
-  questionSection.innerHTML = `${global_qNumber}. ${decodeURIComponent(
-    question.question
-  )}`;
+  questionSection.innerHTML = `${global_qNumber}. ${question.question}`;
 
   if (currentRoom === "Player") {
     // send the answer to the client
     for (const answer of question.all_answers) {
       const button = document.createElement("button");
       button.className = "btn btn-lg btn-outline-dark d-block mx-auto my-2";
-      button.textContent = decodeURIComponent(answer);
+      button.innerHTML = decodeURIComponent(answer);
       playerChoices.appendChild(button);
       button.addEventListener("click", () => {
         socket.emit("answer", button.textContent);
@@ -47,14 +47,13 @@ socket.on("questions", question => {
         removeAllChilds(playerChoices);
       });
     }
-
     playerResult.innerHTML = "";
+    //removeOneChild(resultSection, playerResult);
   } else if (currentRoom === "Spectators") {
-    socket.on("savedQuestion", savedQuestion => {
-      console.log("Run");
-      console.log("Saved question", savedQuestion);
-    });
+    questionSection.innerHTML = "";
     playerChoices.innerHTML = "";
+    // removeOneChild(mainSection, questionSection);
+    // removeOneChild(mainSection, playerChoices);
     if (spec_info) {
       playerResult.innerHTML = `Player has answered ${
         spec_info.q_status ? "Correct" : "Wrong"
@@ -64,11 +63,32 @@ socket.on("questions", question => {
   }
 });
 
-socket.on("savedQuestion", (savedQuestion, number) => {
-  console.log("Run");
-  questionSection.innerHTML = `${number}. ${decodeURIComponent(
-    savedQuestion.question
-  )}`;
+socket.on("spectatorsLog", ({ q_toSend, q_number, answerStatus }) => {
+  console.log(q_toSend);
+  console.log(q_number);
+  console.log(answerStatus);
+  if (answerStatus.q_status === true) {
+    answerStatus.q_status = "Correct";
+  } else if (answerStatus.q_status === false) {
+    answerStatus.q_status = "Wrong";
+  }
+  const div = document.createElement("div");
+  const questionSpan = document.createElement("span");
+  const answerStatusSpan = document.createElement("span");
+
+  questionSpan.className = "d-block";
+  answerStatusSpan.className = "d-block";
+  div.className = "log";
+
+  questionSpan.innerHTML = `${q_number}. ${q_toSend.question}`;
+  answerStatusSpan.innerHTML = `Player has answered ${answerStatus.q_status}`;
+
+  div.appendChild(questionSpan);
+  div.appendChild(answerStatusSpan);
+  playerResult.appendChild(div);
+
+  // removeOneChild(mainSection, questionSection);
+  questionSection.innerHTML = "";
 });
 
 socket.on("answerStatus", (payload, number) => {
@@ -78,6 +98,10 @@ socket.on("answerStatus", (payload, number) => {
 });
 
 // -- on connection
+
+function removeOneChild(parent, child) {
+  parent.removeChild(child);
+}
 
 function removeAllChilds(parent) {
   while (parent.firstChild) {

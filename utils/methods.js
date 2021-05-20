@@ -5,10 +5,7 @@ const axios = require("axios").default;
 const getQuestion = async () => {
   try {
     const response = await axios.get(
-      "https://opentdb.com/api.php?amount=1&category=9&difficulty=medium&type=multiple",
-      {
-        params: { encode: "url3986" }
-      }
+      "https://opentdb.com/api.php?amount=1&category=9&difficulty=medium&type=multiple"
     );
     const question = response.data.results[0];
     return question;

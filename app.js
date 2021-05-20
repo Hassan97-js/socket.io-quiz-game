@@ -29,9 +29,10 @@ const {
 let q_toSend;
 let isJoined = false;
 let score = 0;
-let currentRoom;
+
 let currentQuestion;
 let q_number = 1;
+let answerStatus = { q_status: "No status", score: "No score" };
 
 function sendNextQuestion() {
   getQuestion().then(question => {
@@ -56,13 +57,15 @@ function sendNextQuestion() {
 }
 
 io.on("connection", socket => {
-  const shortName = uniqueNamesGenerator({
+  let currentRoom;
+
+  const randomName = uniqueNamesGenerator({
     dictionaries: [adjectives, colors, animals],
     length: 2,
     style: "capital"
   });
 
-  socket.id = shortName;
+  socket.id = randomName;
   console.log(socket.id, "Connected");
 
   socket.emit("playerConnected", socket.id);
@@ -82,7 +85,7 @@ io.on("connection", socket => {
   } else if (currentRoom === "Spectators") {
     console.log("Run");
     console.log(q_toSend);
-    socket.emit("savedQuestion", q_toSend, q_number);
+    socket.emit("spectatorsLog", { q_toSend, q_number, answerStatus });
   }
 
   socket.emit("currentRoom", currentRoom, q_number);
@@ -92,18 +95,27 @@ io.on("connection", socket => {
     sendNextQuestion();
     q_number++;
 
-    if (currentQuestion.correct_answer === decodeURIComponent(answer)) {
+    if (currentQuestion.correct_answer === answer) {
       score++;
       console.log("Your score:", score);
-      io.emit("answerStatus", { q_status: true, score }, q_number);
+      answerStatus.q_status = true;
+      answerStatus.score = score;
+      io.emit("answerStatus", answerStatus, q_number);
       console.log(`You answered with ${answer}`);
       console.log(`Correct answer is ${currentQuestion.correct_answer}`);
     } else {
       console.log("Wrong");
-      io.emit("answerStatus", { q_status: false, score }, q_number);
+      answerStatus.q_status = false;
+      answerStatus.score = score;
+      io.emit("answerStatus", answerStatus, q_number);
       console.log(`You answered with ${answer}`);
       console.log(`Correct answer is ${currentQuestion.correct_answer}`);
     }
+    io.in("Spectators").emit("spectatorsLog", {
+      q_toSend,
+      q_number,
+      answerStatus
+    });
   });
 
   console.log("score ", score);
@@ -111,11 +123,11 @@ io.on("connection", socket => {
   // Player status: disconnected
   socket.on("disconnect", () => {
     if (currentRoom === "Player") {
-      isJoined = true;
+      isJoined = false;
       q_number = 1;
       score = 0;
     } else {
-      isJoined = false;
+      isJoined = true;
     }
 
     console.log(`${socket.id} disconnected`);
