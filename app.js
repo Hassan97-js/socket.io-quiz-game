@@ -94,7 +94,7 @@ io.on("connection", socket => {
     sendNextQuestion();
     q_number++;
 
-    if (currentQuestion.correct_answer === answer) {
+    if (currentQuestion.correct_answer === decodeURIComponent(answer)) {
       score++;
       console.log("Your score:", score);
       io.emit("answerStatus", { q_status: true, score }, q_number);
