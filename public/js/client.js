@@ -34,7 +34,7 @@ socket.on("questions", question => {
     question.question
   )}`;
 
-  if (currentRoom !== "Spectators") {
+  if (currentRoom === "Player") {
     // send the answer to the client
     for (const answer of question.all_answers) {
       const button = document.createElement("button");
@@ -49,7 +49,11 @@ socket.on("questions", question => {
     }
 
     playerResult.innerHTML = "";
-  } else {
+  } else if (currentRoom === "Spectators") {
+    socket.on("savedQuestion", savedQuestion => {
+      console.log("Run");
+      console.log("Saved question", savedQuestion);
+    });
     playerChoices.innerHTML = "";
     if (spec_info) {
       playerResult.innerHTML = `Player has answered ${
@@ -60,6 +64,13 @@ socket.on("questions", question => {
   }
 });
 
+socket.on("savedQuestion", (savedQuestion, number) => {
+  console.log("Run");
+  questionSection.innerHTML = `${number}. ${decodeURIComponent(
+    savedQuestion.question
+  )}`;
+});
+
 socket.on("answerStatus", (payload, number) => {
   global_qNumber = number;
   spec_info = payload;
@@ -68,14 +79,12 @@ socket.on("answerStatus", (payload, number) => {
 
 // -- on connection
 
-// remove all childnodes
 function removeAllChilds(parent) {
   while (parent.firstChild) {
     parent.removeChild(parent.firstChild);
   }
 }
 
-// send the answer to the server
 function sendAnswer() {
   socket.emit("answer", choices[current_i].textContent);
   console.log(choices[current_i].textContent, current_i);

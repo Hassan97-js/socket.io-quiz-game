@@ -33,7 +33,6 @@ let currentRoom;
 let currentQuestion;
 let q_number = 1;
 
-// function to send the question
 function sendNextQuestion() {
   getQuestion().then(question => {
     const correctAnswer = question.correct_answer;
@@ -57,23 +56,17 @@ function sendNextQuestion() {
 }
 
 io.on("connection", socket => {
-  // send the question to the client
-  sendNextQuestion();
-
-  // generate a random name
   const shortName = uniqueNamesGenerator({
     dictionaries: [adjectives, colors, animals],
     length: 2,
     style: "capital"
   });
 
-  // assign the random name to the socket.id
   socket.id = shortName;
   console.log(socket.id, "Connected");
 
   socket.emit("playerConnected", socket.id);
 
-  // Determining the room name
   if (isJoined === false) {
     currentRoom = "Player";
     socket.join(currentRoom);
@@ -85,6 +78,11 @@ io.on("connection", socket => {
 
   if (currentRoom === "Player") {
     q_number = 1;
+    sendNextQuestion();
+  } else if (currentRoom === "Spectators") {
+    console.log("Run");
+    console.log(q_toSend);
+    socket.emit("savedQuestion", q_toSend, q_number);
   }
 
   socket.emit("currentRoom", currentRoom, q_number);
@@ -115,10 +113,11 @@ io.on("connection", socket => {
     if (currentRoom === "Player") {
       isJoined = true;
       q_number = 1;
+      score = 0;
     } else {
       isJoined = false;
     }
-    score = 0;
+
     console.log(`${socket.id} disconnected`);
   });
 });
