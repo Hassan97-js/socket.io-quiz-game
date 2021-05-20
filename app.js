@@ -52,20 +52,15 @@ function sendNextQuestion() {
       question: question.question
     };
 
-    io.emit("questions", q_toSend);
+    console.log(currentQuestion);
+
+    io.in("Player").emit("questions", q_toSend);
   });
 }
 
 io.on("connection", socket => {
   let currentRoom;
 
-  const randomName = uniqueNamesGenerator({
-    dictionaries: [adjectives, colors, animals],
-    length: 2,
-    style: "capital"
-  });
-
-  socket.id = randomName;
   console.log(socket.id, "Connected");
 
   socket.emit("playerConnected", socket.id);
@@ -82,16 +77,11 @@ io.on("connection", socket => {
   if (currentRoom === "Player") {
     q_number = 1;
     sendNextQuestion();
-  } else if (currentRoom === "Spectators") {
-    console.log("Run");
-    console.log(q_toSend);
-    socket.emit("spectatorsLog", { q_toSend, q_number, answerStatus });
   }
 
   socket.emit("currentRoom", currentRoom, q_number);
 
   socket.on("answer", answer => {
-    // send a new question when the player send the answer
     sendNextQuestion();
     q_number++;
 
@@ -126,8 +116,6 @@ io.on("connection", socket => {
       isJoined = false;
       q_number = 1;
       score = 0;
-    } else {
-      isJoined = true;
     }
 
     console.log(`${socket.id} disconnected`);

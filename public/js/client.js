@@ -24,6 +24,10 @@ socket.on("currentRoom", (room, number) => {
   global_qNumber = number;
   currentRoom = room;
   console.log("You are in room: " + room);
+  if (room === "Spectators") {
+    questionSection.innerHTML =
+      "Waiting for the player to answer the question...";
+  }
 });
 
 // -- on connection
@@ -38,7 +42,7 @@ socket.on("questions", question => {
     // send the answer to the client
     for (const answer of question.all_answers) {
       const button = document.createElement("button");
-      button.className = "btn btn-lg btn-outline-dark d-block mx-auto my-2";
+      button.className = "btn btn-lg btn-outline-dark d-block my-2";
       button.innerHTML = decodeURIComponent(answer);
       playerChoices.appendChild(button);
       button.addEventListener("click", () => {
@@ -48,18 +52,8 @@ socket.on("questions", question => {
       });
     }
     playerResult.innerHTML = "";
-    //removeOneChild(resultSection, playerResult);
   } else if (currentRoom === "Spectators") {
-    questionSection.innerHTML = "";
     playerChoices.innerHTML = "";
-    // removeOneChild(mainSection, questionSection);
-    // removeOneChild(mainSection, playerChoices);
-    if (spec_info) {
-      playerResult.innerHTML = `Player has answered ${
-        spec_info.q_status ? "Correct" : "Wrong"
-      }.`;
-      playerScore.innerHTML = `Player has score ${spec_info.score}.`;
-    }
   }
 });
 
@@ -72,15 +66,16 @@ socket.on("spectatorsLog", ({ q_toSend, q_number, answerStatus }) => {
   } else if (answerStatus.q_status === false) {
     answerStatus.q_status = "Wrong";
   }
+
   const div = document.createElement("div");
   const questionSpan = document.createElement("span");
   const answerStatusSpan = document.createElement("span");
 
-  questionSpan.className = "d-block";
-  answerStatusSpan.className = "d-block";
+  questionSpan.className = "d-block mt-3";
+  answerStatusSpan.className = "d-block mt-2";
   div.className = "log";
 
-  questionSpan.innerHTML = `${q_number}. ${q_toSend.question}`;
+  questionSpan.innerHTML = `${q_number - 1}. ${q_toSend.question}`;
   answerStatusSpan.innerHTML = `Player has answered ${answerStatus.q_status}`;
 
   div.appendChild(questionSpan);
@@ -94,7 +89,11 @@ socket.on("spectatorsLog", ({ q_toSend, q_number, answerStatus }) => {
 socket.on("answerStatus", (payload, number) => {
   global_qNumber = number;
   spec_info = payload;
-  playerScore.textContent = `Your score is: ${payload.score}`;
+  if (currentRoom === "Player") {
+    playerScore.textContent = `Your score is: ${payload.score}`;
+  } else {
+    playerScore.innerHTML = `Player has score: ${payload.score}`;
+  }
 });
 
 // -- on connection
