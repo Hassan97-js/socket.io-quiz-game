@@ -96,6 +96,15 @@ socket.on("answerStatus", (payload, number) => {
   }
 });
 
+socket.on("clearTheLog", () => {
+  removeAllChilds(playerResult);
+  spec_info.score = 0;
+  if (currentRoom === "Spectators") {
+    playerScore.textContent = `Player score is: ${spec_info.score}`;
+  }
+  console.log("Run");
+});
+
 // -- on connection
 
 function removeOneChild(parent, child) {

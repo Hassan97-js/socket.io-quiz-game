@@ -106,7 +106,7 @@ io.on("connection", socket => {
       console.log(`You answered with ${answer}`);
       console.log(`Correct answer is ${currentQuestion.correct_answer}`);
     }
-    io.in("Spectators").emit("spectatorsLog", {
+    io.emit("spectatorsLog", {
       q_toSend,
       q_number,
       answerStatus
@@ -121,6 +121,7 @@ io.on("connection", socket => {
       isJoined = false;
       q_number = 1;
       score = 0;
+      io.in("Spectators").emit("clearTheLog");
     }
 
     console.log(`${socket.id} disconnected`);
