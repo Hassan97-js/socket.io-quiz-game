@@ -27,13 +27,12 @@ socket.on("currentRoom", (room, number) => {
   if (room === "Spectators") {
     questionSection.innerHTML =
       "Waiting for the player to answer the question...";
+    playerResult.style = "overflow: scroll; height: 550px";
   }
 });
 
 // -- on connection
 socket.on("questions", question => {
-  console.log(question);
-
   removeAllChilds(playerChoices);
 
   questionSection.innerHTML = `${global_qNumber}. ${question.question}`;
@@ -47,7 +46,7 @@ socket.on("questions", question => {
       playerChoices.appendChild(button);
       button.addEventListener("click", () => {
         socket.emit("answer", button.textContent);
-        console.log(button.textContent);
+
         removeAllChilds(playerChoices);
       });
     }
@@ -57,33 +56,9 @@ socket.on("questions", question => {
   }
 });
 
-socket.on("spectatorsLog", ({ q_toSend, q_number, answerStatus }) => {
-  console.log(q_toSend);
-  console.log(q_number);
-  console.log(answerStatus);
-  if (answerStatus.q_status === true) {
-    answerStatus.q_status = "Correct";
-  } else if (answerStatus.q_status === false) {
-    answerStatus.q_status = "Wrong";
-  }
-
-  const div = document.createElement("div");
-  const questionSpan = document.createElement("span");
-  const answerStatusSpan = document.createElement("span");
-
-  questionSpan.className = "d-block mt-3";
-  answerStatusSpan.className = "d-block mt-2";
-  div.className = "log";
-
-  questionSpan.innerHTML = `${q_number - 1}. ${q_toSend.question}`;
-  answerStatusSpan.innerHTML = `Player has answered ${answerStatus.q_status}`;
-
-  div.appendChild(questionSpan);
-  div.appendChild(answerStatusSpan);
-  playerResult.appendChild(div);
-
-  // removeOneChild(mainSection, questionSection);
-  questionSection.innerHTML = "";
+socket.on("spectatorsLog", payload => {
+  createSpectatorsLog(payload);
+  playerResult.scrollTo(0, playerResult.scrollHeight);
 });
 
 socket.on("answerStatus", (payload, number) => {
@@ -102,22 +77,6 @@ socket.on("clearTheLog", () => {
   if (currentRoom === "Spectators") {
     playerScore.textContent = `Player score is: ${spec_info.score}`;
   }
-  console.log("Run");
 });
 
 // -- on connection
-
-function removeOneChild(parent, child) {
-  parent.removeChild(child);
-}
-
-function removeAllChilds(parent) {
-  while (parent.firstChild) {
-    parent.removeChild(parent.firstChild);
-  }
-}
-
-function sendAnswer() {
-  socket.emit("answer", choices[current_i].textContent);
-  console.log(choices[current_i].textContent, current_i);
-}

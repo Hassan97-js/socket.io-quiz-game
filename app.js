@@ -55,8 +55,6 @@ function sendNextQuestion() {
       question: question.question
     };
 
-    console.log(currentQuestion);
-
     io.in("Player").emit("questions", q_toSend);
   });
 }
