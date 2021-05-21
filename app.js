@@ -6,7 +6,6 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const path = require("path");
-const querystring = require("querystring");
 
 // Socket.io
 const { Server } = require("socket.io");
@@ -25,6 +24,9 @@ const {
   colors,
   animals
 } = require("unique-names-generator");
+
+// decode html entities
+const { decode } = require("html-entities");
 
 // global variables
 let q_toSend;
@@ -90,7 +92,7 @@ io.on("connection", socket => {
     sendNextQuestion();
     q_number++;
 
-    if (currentQuestion.correct_answer === querystring.unescape(answer)) {
+    if (currentQuestion.correct_answer === decode(answer)) {
       score++;
       console.log("Your score:", score);
       answerStatus.q_status = true;
