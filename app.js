@@ -6,6 +6,7 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const path = require("path");
+const querystring = require("querystring");
 
 // Socket.io
 const { Server } = require("socket.io");
@@ -60,10 +61,14 @@ function sendNextQuestion() {
 
 io.on("connection", socket => {
   let currentRoom;
+  const randomName = uniqueNamesGenerator({
+    dictionaries: [colors, adjectives, animals],
+    style: "capital"
+  });
 
   console.log(socket.id, "Connected");
 
-  socket.emit("playerConnected", socket.id);
+  socket.emit("playerConnected", randomName);
 
   if (isJoined === false) {
     currentRoom = "Player";
@@ -85,7 +90,7 @@ io.on("connection", socket => {
     sendNextQuestion();
     q_number++;
 
-    if (currentQuestion.correct_answer === answer) {
+    if (currentQuestion.correct_answer === querystring.unescape(answer)) {
       score++;
       console.log("Your score:", score);
       answerStatus.q_status = true;
